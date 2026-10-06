@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#111111">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="LME Scrap">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-180.png">
+  <title>LME Scrap Calculator</title>
+  <style>
+    :root { color-scheme: light; --bg:#f4f4f2; --card:#fff; --ink:#111; --muted:#777; --line:#e4e4e1; --accent:#c62828; }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;color:var(--ink)}
+    main{max-width:520px;margin:auto;padding:calc(18px + env(safe-area-inset-top)) 16px calc(28px + env(safe-area-inset-bottom))}
+    header{padding:4px 4px 16px}
+    .eyebrow{font-size:12px;color:var(--muted);letter-spacing:.08em}
+    h1{font-size:24px;margin:5px 0 0}
+    .card{background:var(--card);border-radius:22px;padding:18px;box-shadow:0 5px 24px rgba(0,0,0,.06);margin-bottom:14px}
+    .hero{background:#111;color:#fff}
+    .hero .label{color:#aaa}.price{font-size:42px;font-weight:800;letter-spacing:-.04em;margin:4px 0}.unit{font-size:14px;color:#aaa}
+    .sub{font-size:14px;color:#cfcfcf;margin-top:10px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    label{display:block;font-size:12px;color:var(--muted);margin:0 0 5px 3px}
+    input{width:100%;border:1px solid var(--line);border-radius:13px;padding:13px 12px;font-size:17px;background:#fafaf9;outline:none}
+    input:focus{border-color:#999;background:#fff}
+    .full{grid-column:1/-1}
+    .row{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+    .row:last-child{border-bottom:0}.row strong{font-size:15px}
+    .section-title{font-size:14px;font-weight:700;margin:0 0 12px}
+    .note{font-size:11px;color:var(--muted);line-height:1.6;margin:10px 3px 0}
+    button{border:0;border-radius:12px;padding:11px 14px;background:#eee;font-weight:700}
+    .preset{display:flex;gap:8px;overflow:auto;padding-bottom:2px}.preset button{white-space:nowrap}
+    .saved{font-size:12px;color:#4a4a4a;margin-top:8px}
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">SEKIX / METAL TRADING TOOL</div>
+    <h1>銅スクラップ LME連動価格</h1>
+  </header>
+
+  <section class="card hero">
+    <div class="label">推定購入価格</div>
+    <div class="price" id="price">—</div>
+    <div class="unit">円 / kg</div>
+    <div class="sub" id="total">10tの場合：—</div>
+  </section>
+
+  <section class="card">
+    <div class="section-title">入力条件</div>
+    <div class="grid">
+      <div><label>LME銅 ($/t)</label><input id="lme" type="number" inputmode="decimal" value="14700"></div>
+      <div><label>USD / JPY</label><input id="fx" type="number" inputmode="decimal" value="155"></div>
+      <div><label>銅含有率 (%)</label><input id="grade" type="number" inputmode="decimal" value="98"></div>
+      <div><label>LME連動率 (%)</label><input id="link" type="number" inputmode="decimal" value="92"></div>
+      <div><label>Premium / Discount (%)</label><input id="prem" type="number" inputmode="decimal" value="0"></div>
+      <div><label>コスト (円/kg)</label><input id="cost" type="number" inputmode="decimal" value="30"></div>
+      <div class="full"><label>数量 (t)</label><input id="qty" type="number" inputmode="decimal" value="10"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="section-title">計算内訳</div>
+    <div class="row"><span>LME円換算</span><strong id="a">—</strong></div>
+    <div class="row"><span>品位反映</span><strong id="b">—</strong></div>
+    <div class="row"><span>連動率反映</span><strong id="c">—</strong></div>
+    <div class="row"><span>Premium / Discount</span><strong id="d">—</strong></div>
+    <div class="row"><span>コスト控除後</span><strong id="e">—</strong></div>
+  </section>
+
+  <section class="card">
+    <div class="section-title">よく使うプリセット</div>
+    <div class="preset">
+      <button onclick="preset(98,92,0,30)">1号銅</button>
+      <button onclick="preset(95,90,0,30)">高品位銅</button>
+      <button onclick="preset(90,85,0,35)">混合銅</button>
+    </div>
+    <div class="saved" id="saved">入力値はこの端末に自動保存されます。</div>
+  </section>
+
+  <p class="note">※この版はLME・為替を手入力するプロトタイプです。実際の商取引価格は契約条件、品位、歩留まり、運賃等を別途確認してください。</p>
+</main>
+
+<script>
+const ids=["lme","fx","grade","link","prem","cost","qty"];
+const yen = n => "¥" + Math.round(n).toLocaleString("ja-JP");
+function calc(){
+  const v = Object.fromEntries(ids.map(id=>[id,Number(document.getElementById(id).value)||0]));
+  const lmeYenKg=v.lme*v.fx/1000;
+  const gradeAdj=lmeYenKg*v.grade/100;
+  const linkAdj=gradeAdj*v.link/100;
+  const premAdj=linkAdj*(1+v.prem/100);
+  const purchase=premAdj-v.cost;
+  document.getElementById("price").textContent=yen(purchase);
+  document.getElementById("total").textContent=(v.qty||0).toLocaleString("ja-JP")+"tの場合："+yen(purchase*v.qty*1000);
+  document.getElementById("a").textContent=yen(lmeYenKg)+"/kg";
+  document.getElementById("b").textContent=yen(gradeAdj)+"/kg";
+  document.getElementById("c").textContent=yen(linkAdj)+"/kg";
+  document.getElementById("d").textContent=yen(premAdj)+"/kg";
+  document.getElementById("e").textContent=yen(purchase)+"/kg";
+  localStorage.setItem("lmeScrap",JSON.stringify(v));
+}
+function preset(g,l,p,c){document.getElementById("grade").value=g;document.getElementById("link").value=l;document.getElementById("prem").value=p;document.getElementById("cost").value=c;calc();}
+const saved=localStorage.getItem("lmeScrap");
+if(saved){try{const v=JSON.parse(saved);ids.forEach(id=>{if(v[id]!==undefined)document.getElementById(id).value=v[id]})}catch(e){}}
+ids.forEach(id=>document.getElementById(id).addEventListener("input",calc));
+calc();
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js"))}
+</script>
+</body>
+</html>
