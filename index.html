@@ -1,115 +1,158 @@
 <!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#111111">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="LME Scrap">
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icon-180.png">
-  <title>LME Scrap Calculator</title>
-  <style>
-    :root { color-scheme: light; --bg:#f4f4f2; --card:#fff; --ink:#111; --muted:#777; --line:#e4e4e1; --accent:#c62828; }
-    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-    body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;color:var(--ink)}
-    main{max-width:520px;margin:auto;padding:calc(18px + env(safe-area-inset-top)) 16px calc(28px + env(safe-area-inset-bottom))}
-    header{padding:4px 4px 16px}
-    .eyebrow{font-size:12px;color:var(--muted);letter-spacing:.08em}
-    h1{font-size:24px;margin:5px 0 0}
-    .card{background:var(--card);border-radius:22px;padding:18px;box-shadow:0 5px 24px rgba(0,0,0,.06);margin-bottom:14px}
-    .hero{background:#111;color:#fff}
-    .hero .label{color:#aaa}.price{font-size:42px;font-weight:800;letter-spacing:-.04em;margin:4px 0}.unit{font-size:14px;color:#aaa}
-    .sub{font-size:14px;color:#cfcfcf;margin-top:10px}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    label{display:block;font-size:12px;color:var(--muted);margin:0 0 5px 3px}
-    input{width:100%;border:1px solid var(--line);border-radius:13px;padding:13px 12px;font-size:17px;background:#fafaf9;outline:none}
-    input:focus{border-color:#999;background:#fff}
-    .full{grid-column:1/-1}
-    .row{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
-    .row:last-child{border-bottom:0}.row strong{font-size:15px}
-    .section-title{font-size:14px;font-weight:700;margin:0 0 12px}
-    .note{font-size:11px;color:var(--muted);line-height:1.6;margin:10px 3px 0}
-    button{border:0;border-radius:12px;padding:11px 14px;background:#eee;font-weight:700}
-    .preset{display:flex;gap:8px;overflow:auto;padding-bottom:2px}.preset button{white-space:nowrap}
-    .saved{font-size:12px;color:#4a4a4a;margin-top:8px}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111111">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LME Scrap">
+<link rel="manifest" href="./manifest.json?v=20261007v21">
+<link rel="apple-touch-icon" href="./icon-180.png?v=20261007v21">
+<title>LME Scrap Calculator v2.1</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f3f4f6;color:#111;font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue","Noto Sans JP",sans-serif}
+.wrap{max-width:760px;margin:auto;padding:18px 14px 40px}
+header{background:#111;color:#fff;border-radius:20px;padding:18px 18px 16px;margin-bottom:14px}
+.brand{font-size:12px;letter-spacing:.12em;opacity:.7}.title{font-size:24px;font-weight:800;margin-top:5px}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}.tab{border:0;border-radius:14px;padding:13px 5px;font-weight:800;background:#ddd;color:#333}.tab.active{background:#111;color:#fff}
+.card{background:#fff;border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 2px 12px rgba(0,0,0,.05)}
+.result{background:#111;color:#fff;border-radius:18px;padding:18px;margin-bottom:12px}
+.big{font-size:34px;font-weight:900;line-height:1.1}.sub{opacity:.72;font-size:13px;margin-top:5px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field label{display:block;font-size:12px;font-weight:700;color:#666;margin:0 0 5px}.field input,.field select{width:100%;font-size:17px;padding:12px;border:1px solid #ddd;border-radius:12px;background:#fff}
+.section-title{font-size:14px;font-weight:900;margin-bottom:10px}.break{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #eee;font-size:14px}.break:last-child{border:0}
+.total{font-size:18px;font-weight:900}.note{font-size:11px;color:#777;line-height:1.5}.presets{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.preset{border:1px solid #ddd;background:#fff;border-radius:12px;padding:10px;font-weight:700}
+@media(min-width:600px){.presets{grid-template-columns:repeat(4,1fr)}}
+</style>
 </head>
 <body>
-<main>
-  <header>
-    <div class="eyebrow">SEKIX / METAL TRADING TOOL</div>
-    <h1>銅スクラップ LME連動価格</h1>
-  </header>
+<div class="wrap">
+<header><div class="brand">SEKIX / METAL TRADING TOOL</div><div class="title">LME Scrap Calculator <small style="font-size:12px;opacity:.55">v2.1</small></div></header>
 
-  <section class="card hero">
-    <div class="label">推定購入価格</div>
-    <div class="price" id="price">—</div>
-    <div class="unit">円 / kg</div>
-    <div class="sub" id="total">10tの場合：—</div>
-  </section>
+<div class="tabs">
+<button class="tab active" data-metal="copper">🟠 銅</button>
+<button class="tab" data-metal="brass">🟡 真鍮</button>
+<button class="tab" data-metal="aluminum">⚪ アルミ</button>
+</div>
 
-  <section class="card">
-    <div class="section-title">入力条件</div>
-    <div class="grid">
-      <div><label>LME銅 ($/t)</label><input id="lme" type="number" inputmode="decimal" value="14700"></div>
-      <div><label>USD / JPY</label><input id="fx" type="number" inputmode="decimal" value="155"></div>
-      <div><label>銅含有率 (%)</label><input id="grade" type="number" inputmode="decimal" value="98"></div>
-      <div><label>LME連動率 (%)</label><input id="link" type="number" inputmode="decimal" value="92"></div>
-      <div><label>Premium / Discount (%)</label><input id="prem" type="number" inputmode="decimal" value="0"></div>
-      <div><label>コスト (円/kg)</label><input id="cost" type="number" inputmode="decimal" value="30"></div>
-      <div class="full"><label>数量 (t)</label><input id="qty" type="number" inputmode="decimal" value="10"></div>
-    </div>
-  </section>
+<div class="result">
+<div class="sub">推定購入価格</div>
+<div class="big" id="jpyUnit">— 円/kg</div>
+<div class="sub" id="usdUnit">— $/MT</div>
+<div class="sub" id="qtyTotal">—</div>
+</div>
 
-  <section class="card">
-    <div class="section-title">計算内訳</div>
-    <div class="row"><span>LME円換算</span><strong id="a">—</strong></div>
-    <div class="row"><span>品位反映</span><strong id="b">—</strong></div>
-    <div class="row"><span>連動率反映</span><strong id="c">—</strong></div>
-    <div class="row"><span>Premium / Discount</span><strong id="d">—</strong></div>
-    <div class="row"><span>コスト控除後</span><strong id="e">—</strong></div>
-  </section>
+<div class="card">
+<div class="section-title">LME・為替</div>
+<div class="grid">
+<div class="field"><label id="lme1Label">LME銅 ($/MT)</label><input id="lme1" type="number" step="0.01"></div>
+<div class="field"><label>USD / JPY</label><input id="fx" type="number" step="0.01"></div>
+<div class="field" id="lme2Wrap" style="display:none"><label id="lme2Label">LME亜鉛 ($/MT)</label><input id="lme2" type="number" step="0.01"></div>
+</div>
+</div>
 
-  <section class="card">
-    <div class="section-title">よく使うプリセット</div>
-    <div class="preset">
-      <button onclick="preset(98,92,0,30)">1号銅</button>
-      <button onclick="preset(95,90,0,30)">高品位銅</button>
-      <button onclick="preset(90,85,0,35)">混合銅</button>
-    </div>
-    <div class="saved" id="saved">入力値はこの端末に自動保存されます。</div>
-  </section>
+<div class="card">
+<div class="section-title">品位・歩留まり</div>
+<div class="grid">
+<div class="field" id="pct1Wrap"><label id="pct1Label">銅含有率 (%)</label><input id="pct1" type="number" step="0.1"></div>
+<div class="field" id="rec1Wrap"><label id="rec1Label">銅回収率 (%)</label><input id="rec1" type="number" step="0.1"></div>
+<div class="field" id="pct2Wrap" style="display:none"><label id="pct2Label">亜鉛含有率 (%)</label><input id="pct2" type="number" step="0.1"></div>
+<div class="field" id="rec2Wrap" style="display:none"><label id="rec2Label">亜鉛回収率 (%)</label><input id="rec2" type="number" step="0.1"></div>
+</div>
+</div>
 
-  <p class="note">※この版はLME・為替を手入力するプロトタイプです。実際の商取引価格は契約条件、品位、歩留まり、運賃等を別途確認してください。</p>
-</main>
+<div class="card">
+<div class="section-title">取引条件</div>
+<div class="grid">
+<div class="field"><label>LME連動率 (%)</label><input id="linkage" type="number" step="0.1"></div>
+<div class="field"><label>Premium / Discount (%)</label><input id="premium" type="number" step="0.1"></div>
+<div class="field"><label>コスト (円/kg)</label><input id="cost" type="number" step="0.1"></div>
+<div class="field"><label>数量 (MT)</label><input id="qty" type="number" step="0.1"></div>
+</div>
+</div>
+
+<div class="card">
+<div class="section-title">計算内訳</div>
+<div class="break"><span>LME価値（$/MT）</span><b id="baseUsd">—</b></div>
+<div class="break"><span>回収率反映後</span><b id="recoveredUsd">—</b></div>
+<div class="break"><span>LME連動率反映後</span><b id="linkedUsd">—</b></div>
+<div class="break"><span>Premium / Discount反映後</span><b id="adjustedUsd">—</b></div>
+<div class="break"><span>円換算（コスト控除前）</span><b id="beforeCostJpy">—</b></div>
+<div class="break"><span>コスト控除後</span><b id="afterCostJpy">—</b></div>
+</div>
+
+<div class="card">
+<div class="section-title">よく使うプリセット</div>
+<div class="presets" id="presets"></div>
+</div>
+
+<div class="card note">
+入力値はこの端末に自動保存されます。<br>
+※LME・為替は手入力するプロトタイプです。実際の商取引価格は契約条件、品位、歩留まり、運賃等を別途確認してください。
+</div>
+</div>
 
 <script>
-const ids=["lme","fx","grade","link","prem","cost","qty"];
-const yen = n => "¥" + Math.round(n).toLocaleString("ja-JP");
-function calc(){
-  const v = Object.fromEntries(ids.map(id=>[id,Number(document.getElementById(id).value)||0]));
-  const lmeYenKg=v.lme*v.fx/1000;
-  const gradeAdj=lmeYenKg*v.grade/100;
-  const linkAdj=gradeAdj*v.link/100;
-  const premAdj=linkAdj*(1+v.prem/100);
-  const purchase=premAdj-v.cost;
-  document.getElementById("price").textContent=yen(purchase);
-  document.getElementById("total").textContent=(v.qty||0).toLocaleString("ja-JP")+"tの場合："+yen(purchase*v.qty*1000);
-  document.getElementById("a").textContent=yen(lmeYenKg)+"/kg";
-  document.getElementById("b").textContent=yen(gradeAdj)+"/kg";
-  document.getElementById("c").textContent=yen(linkAdj)+"/kg";
-  document.getElementById("d").textContent=yen(premAdj)+"/kg";
-  document.getElementById("e").textContent=yen(purchase)+"/kg";
-  localStorage.setItem("lmeScrap",JSON.stringify(v));
+const VERSION="v2.1-20261007";
+const defaults={
+copper:{lme1:14735,fx:155,lme2:3949,pct1:98,rec1:100,pct2:40,rec2:100,linkage:92,premium:0,cost:30,qty:10},
+brass:{lme1:14735,fx:155,lme2:3949,pct1:63,rec1:100,pct2:37,rec2:100,linkage:92,premium:0,cost:30,qty:10},
+aluminum:{lme1:3240,fx:155,lme2:0,pct1:95,rec1:95,pct2:0,rec2:100,linkage:90,premium:0,cost:20,qty:10}
+};
+const brassPresets=[["Cu60/Zn40",60,40],["Cu63/Zn37",63,37],["Cu65/Zn35",65,35],["Cu70/Zn30",70,30]];
+let metal=localStorage.getItem("lmeMetal")||"copper";
+const $=id=>document.getElementById(id);
+function key(){return "lmeScrap_"+VERSION+"_"+metal}
+function load(){
+ let d=defaults[metal]; let saved=JSON.parse(localStorage.getItem(key())||"null"); d={...d,...(saved||{})};
+ for(const id of ["lme1","fx","lme2","pct1","rec1","pct2","rec2","linkage","premium","cost","qty"]) $(id).value=d[id];
 }
-function preset(g,l,p,c){document.getElementById("grade").value=g;document.getElementById("link").value=l;document.getElementById("prem").value=p;document.getElementById("cost").value=c;calc();}
-const saved=localStorage.getItem("lmeScrap");
-if(saved){try{const v=JSON.parse(saved);ids.forEach(id=>{if(v[id]!==undefined)document.getElementById(id).value=v[id]})}catch(e){}}
-ids.forEach(id=>document.getElementById(id).addEventListener("input",calc));
-calc();
-if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js"))}
+function save(){let o={};for(const id of ["lme1","fx","lme2","pct1","rec1","pct2","rec2","linkage","premium","cost","qty"])o[id]=Number($(id).value);localStorage.setItem(key(),JSON.stringify(o));localStorage.setItem("lmeMetal",metal)}
+function fmt(n,d=0){return Number.isFinite(n)?n.toLocaleString("ja-JP",{minimumFractionDigits:d,maximumFractionDigits:d}):"—"}
+function calculate(){
+ const a=id=>Number($(id).value)||0, fx=a("fx");
+ let base=0;
+ if(metal==="copper") base=a("lme1")*a("pct1")/100;
+ if(metal==="brass") base=a("lme1")*a("pct1")/100 + a("lme2")*a("pct2")/100;
+ if(metal==="aluminum") base=a("lme1")*a("pct1")/100;
+ let recovered;
+ if(metal==="brass") recovered=a("lme1")*a("pct1")/100*a("rec1")/100+a("lme2")*a("pct2")/100*a("rec2")/100;
+ else recovered=base*a("rec1")/100;
+ let linked=recovered*a("linkage")/100;
+ let adjusted=linked*(1+a("premium")/100);
+ let before=adjusted*fx/1000;
+ let after=Math.max(0,before-a("cost"));
+ let usd=fx?after*1000/fx:0;
+ let totalJpy=after*a("qty")*1000,totalUsd=usd*a("qty");
+ $("baseUsd").textContent=fmt(base,1)+" $/MT";
+ $("recoveredUsd").textContent=fmt(recovered,1)+" $/MT";
+ $("linkedUsd").textContent=fmt(linked,1)+" $/MT";
+ $("adjustedUsd").textContent=fmt(adjusted,1)+" $/MT";
+ $("beforeCostJpy").textContent=fmt(before,1)+" 円/kg";
+ $("afterCostJpy").textContent=fmt(after,1)+" 円/kg";
+ $("jpyUnit").textContent=fmt(after,1)+" 円/kg";
+ $("usdUnit").textContent=fmt(usd,1)+" $/MT";
+ $("qtyTotal").textContent=fmt(a("qty"),1)+" MT → "+fmt(totalJpy,0)+" 円 / "+fmt(totalUsd,0)+" USD";
+}
+function render(){
+ document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.metal===metal));
+ $("lme2Wrap").style.display=metal==="brass"?"block":"none";
+ $("pct2Wrap").style.display=metal==="brass"?"block":"none";
+ $("rec2Wrap").style.display=metal==="brass"?"block":"none";
+ if(metal==="copper"){ $("lme1Label").textContent="LME銅 ($/MT)"; $("pct1Label").textContent="銅含有率 (%)"; $("rec1Label").textContent="銅回収率 (%)"; }
+ if(metal==="brass"){ $("lme1Label").textContent="LME銅 ($/MT)"; $("lme2Label").textContent="LME亜鉛 ($/MT)"; $("pct1Label").textContent="銅含有率 (%)"; $("pct2Label").textContent="亜鉛含有率 (%)"; $("rec1Label").textContent="銅回収率 (%)"; $("rec2Label").textContent="亜鉛回収率 (%)"; }
+ if(metal==="aluminum"){ $("lme1Label").textContent="LMEアルミ ($/MT)"; $("pct1Label").textContent="アルミ含有率 (%)"; $("rec1Label").textContent="アルミ回収率 (%)"; }
+ const p=$("presets");p.innerHTML="";
+ if(metal==="brass") brassPresets.forEach(x=>{let b=document.createElement("button");b.className="preset";b.textContent=x[0];b.onclick=()=>{$("pct1").value=x[1];$("pct2").value=x[2];save();calculate()};p.appendChild(b)});
+ else {let names=metal==="copper"?["1号銅","高品位銅","混合銅"]:["新塊相当","高品位アルミ","アルミスクラップ"];let vals=metal==="copper"?[[99,100,95,0],[98,100,92,0],[92,95,85,-2]]:[[99,100,95,0],[97,98,92,0],[95,95,90,0]];names.forEach((n,i)=>{let b=document.createElement("button");b.className="preset";b.textContent=n;b.onclick=()=>{$("pct1").value=vals[i][0];$("rec1").value=vals[i][1];$("linkage").value=vals[i][2];$("premium").value=vals[i][3];save();calculate()};p.appendChild(b)})}
+ load();calculate();
+}
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{metal=b.dataset.metal;localStorage.setItem("lmeMetal",metal);render()});
+document.querySelectorAll("input").forEach(i=>i.addEventListener("input",()=>{save();calculate()}));
+if("serviceWorker" in navigator){
+ navigator.serviceWorker.register("./sw.js?v=20261007v21",{updateViaCache:"none"}).then(r=>r.update()).catch(()=>{});
+}
+render();
 </script>
 </body>
 </html>

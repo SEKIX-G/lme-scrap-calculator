@@ -1,1 +1,25 @@
-const CACHE="lme-scrap-v2-20261007";const ASSETS=["./","./index.html","./manifest.json","./icon-180.png","./icon-512.png"];self.addEventListener("install",e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));self.addEventListener("activate",e=>e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==CACHE).map(x=>caches.delete(x)))).then(()=>self.clients.claim())));self.addEventListener("fetch",e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));
+const CACHE_NAME="lme-scrap-v2-1-20261007";
+const ASSETS=[
+ "./",
+ "./index.html?v=20261007v21",
+ "./manifest.json?v=20261007v21",
+ "./icon-180.png?v=20261007v21",
+ "./icon-512.png?v=20261007v21"
+];
+self.addEventListener("install",event=>{
+ self.skipWaiting();
+ event.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(ASSETS)));
+});
+self.addEventListener("activate",event=>{
+ event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE_NAME).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));
+});
+self.addEventListener("fetch",event=>{
+ if(event.request.method!=="GET") return;
+ event.respondWith(
+  fetch(event.request).then(res=>{
+   const copy=res.clone();
+   caches.open(CACHE_NAME).then(c=>c.put(event.request,copy)).catch(()=>{});
+   return res;
+  }).catch(()=>caches.match(event.request).then(r=>r||caches.match("./")))
+ );
+});
